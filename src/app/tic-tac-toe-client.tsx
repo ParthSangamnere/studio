@@ -82,7 +82,7 @@ export default function TicTacToeClient() {
   const [board, setBoard] = useState<BoardState>(Array(9).fill(null));
   const [gameMode, setGameMode] = useState<GameMode>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>(null);
-  const [isXNext, setIsXNext] = useState(isXNext);
+  const [isXNext, setIsXNext] = useState(true);
   const [gameStatus, setGameStatus] = useState<GameStatus>("playing");
   const [winner, setWinner] = useState<{ winner: PlayerSymbol; line: number[] } | null>(null);
 
@@ -553,5 +553,3 @@ export default function TicTacToeClient() {
     </div>
   );
 }
-
-    
