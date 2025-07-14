@@ -26,10 +26,10 @@ const Square = ({
     onClick={onClick}
     disabled={disabled}
     className={cn(
-      "aspect-square w-full h-full rounded-none bg-transparent border border-border flex items-center justify-center p-4 transition-all duration-300 ease-in-out",
-      "hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background",
+      "aspect-square w-24 h-24 md:w-32 md:h-32 rounded-lg bg-card/50 border-4 border-double border-foreground/50 flex items-center justify-center p-2 transition-all duration-300 ease-in-out",
+      "hover:bg-primary/20 hover:border-primary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background",
       "disabled:cursor-not-allowed",
-      isWinner && "bg-accent/20"
+      isWinner && "bg-primary/30 border-primary"
     )}
     aria-label={`Square ${value ? `with ${value}` : "empty"}`}
   >
@@ -42,7 +42,7 @@ const Square = ({
 
 export function GameBoard({ board, onSquareClick, isGameOver, winningLine }: GameBoardProps) {
   return (
-    <div className="grid grid-cols-3 gap-0 w-full max-w-md aspect-square my-6 bg-card shadow-lg border-2 border-border">
+    <div className="grid grid-cols-3 gap-2 w-auto p-2 rounded-xl bg-card/80 shadow-lg border-2 border-foreground/20 backdrop-blur-sm">
       {board.map((value, index) => (
         <Square
           key={index}

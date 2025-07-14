@@ -26,8 +26,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Trophy, Users, Cpu, History, Flame } from "lucide-react";
+import { Trophy, Users, Cpu, History, Anchor, Bone } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { StrawHatTitle } from "@/components/game/StrawHatTitle";
+import Image from "next/image";
 
 const PLAYER_DATA_KEY = "OASIS_PLAYER_DATA_V1";
 const POINTS = { WIN: 10, DRAW: 2, LOSS: -5 };
@@ -107,20 +109,15 @@ export default function TicTacToeClient() {
     if (winnerInfo) {
       setWinner(winnerInfo);
       setGameStatus("win");
+      const isPlayer1Win = winnerInfo.winner === player1.symbol;
       if (gameMode === 'cpu') {
-        const isWin = winnerInfo.winner === player1.symbol;
-        const result = isWin ? 'win' : 'loss';
-        const points = isWin ? POINTS.WIN : POINTS.LOSS;
+        const result = isPlayer1Win ? 'win' : 'loss';
+        const points = isPlayer1Win ? POINTS.WIN : POINTS.LOSS;
         updateHistoryAndPoints(result, `CPU (${difficulty})`, points);
       } else if (gameMode === '1v1' && playerData) {
-        if (winnerInfo.winner === player1.symbol) {
+        if (isPlayer1Win) {
           updateHistoryAndPoints('win', player2.name, POINTS.WIN);
         } else {
-           // This logic assumes we are tracking the main player's stats even in losses.
-           // If we only track P1, we would check if P2 won and record a loss for P1.
-           // The current implementation only records wins for P1 in 1v1.
-           // For a complete history, we should record losses too.
-           // Let's assume the main user is always player1
            updateHistoryAndPoints('loss', player2.name, POINTS.LOSS);
         }
       }
@@ -177,7 +174,7 @@ export default function TicTacToeClient() {
   };
   
   const makeCpuMove = useCallback((currentBoard: BoardState) => {
-    const availableSquares = currentBoard.map((sq, i) => sq === null ? i : null).filter(i => i !== null);
+    const availableSquares = currentBoard.map((sq, i) => sq === null ? i : null).filter(i => i !== null) as number[];
     if (availableSquares.length === 0) return;
 
     let move: number;
@@ -185,7 +182,6 @@ export default function TicTacToeClient() {
     const findWinningMove = (player: PlayerSymbol) => {
         for (const i of availableSquares) {
             const tempBoard = [...currentBoard];
-            if (i === null) continue;
             tempBoard[i] = player;
             if (calculateWinner(tempBoard)?.winner === player) {
                 return i;
@@ -206,10 +202,10 @@ export default function TicTacToeClient() {
             const playerWinMove = findWinningMove('X');
             if (playerWinMove !== null) { move = playerWinMove; }
             // 3. Random move
-            else { move = availableSquares[Math.floor(Math.random() * availableSquares.length)] as number; }
+            else { move = availableSquares[Math.floor(Math.random() * availableSquares.length)]; }
         }
     } else { // Easy
-        move = availableSquares[Math.floor(Math.random() * availableSquares.length)] as number;
+        move = availableSquares[Math.floor(Math.random() * availableSquares.length)];
     }
 
     setTimeout(() => {
@@ -238,7 +234,7 @@ export default function TicTacToeClient() {
               }
           }
       }
-      return bestMove;
+      return bestMove !== -1 ? bestMove : (board.findIndex(s => s === null));
   }
 
   const minimax = (board: BoardState, depth: number, isMax: boolean): number => {
@@ -271,20 +267,33 @@ export default function TicTacToeClient() {
   }
 
   const handleSquareClick = (index: number) => {
-    if (winner || board[index]) return;
+    if (winner || board[index] || gameStatus !== 'playing') return;
     
     const newBoard = [...board];
     newBoard[index] = isXNext ? 'X' : 'O';
     setBoard(newBoard);
-    setIsXNext(!isXNext);
-    handleGameEnd(newBoard);
+    const nextPlayer = !isXNext;
+    setIsXNext(nextPlayer);
+    
+    const gameResultBoard = [...newBoard];
+    handleGameEnd(gameResultBoard);
+
+    if (gameMode === 'cpu' && nextPlayer === false && !calculateWinner(gameResultBoard) && gameResultBoard.some(s => s === null)) {
+        // The handleGameEnd might have set status to win/draw, check again
+        const currentWinner = calculateWinner(gameResultBoard);
+        const isBoardFull = gameResultBoard.every(Boolean);
+        if (!currentWinner && !isBoardFull) {
+            makeCpuMove(gameResultBoard);
+        }
+    }
   };
   
   useEffect(() => {
-    if (gameMode === 'cpu' && !isXNext && gameStatus === 'playing') {
+    if (gameMode === 'cpu' && !isXNext && gameStatus === 'playing' && !winner) {
       makeCpuMove(board);
     }
-  }, [isXNext, board, gameMode, gameStatus, makeCpuMove]);
+  }, [isXNext, board, gameMode, gameStatus, makeCpuMove, winner]);
+
 
   if (!isMounted) {
     return <div className="text-2xl font-bold tracking-widest animate-pulse">LOADING...</div>;
@@ -295,18 +304,18 @@ export default function TicTacToeClient() {
       <Dialog open={true}>
         <DialogContent className="sm:max-w-md bg-card border-border">
           <DialogHeader>
-            <DialogTitle className="font-headline text-3xl text-primary">Enter the Grid</DialogTitle>
+            <DialogTitle className="font-headline text-3xl text-primary">What's Your Name, Pirate?</DialogTitle>
             <DialogDescription>
-              State your name, challenger.
+              Every legend has a beginning. State your name.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSetUsername} className="flex items-center space-x-2">
             <div className="grid flex-1 gap-2">
               <Label htmlFor="username" className="sr-only">Username</Label>
-              <Input id="username" value={tempUsername} onChange={(e) => setTempUsername(e.target.value)} placeholder="Your name..." />
+              <Input id="username" value={tempUsername} onChange={(e) => setTempUsername(e.target.value)} placeholder="e.g. Straw Hat Luffy" />
             </div>
             <Button type="submit" size="sm" className="px-3">
-              Enter
+              Set Sail!
             </Button>
           </form>
         </DialogContent>
@@ -317,50 +326,56 @@ export default function TicTacToeClient() {
   const renderGameStatus = () => {
     if (gameStatus === "win" && winner) {
       const winnerPlayer = winner.winner === player1.symbol ? player1 : player2;
-      return <span className="text-accent">{winnerPlayer.name} wins!</span>;
+      return <span className="text-accent">{winnerPlayer.name} is the winner!</span>;
     }
     if (gameStatus === "draw") {
-      return <span>Draw</span>;
+      return <span>It's a draw!</span>;
     }
-    return <span>Turn: <span className="text-primary font-semibold">{isXNext ? player1.name : player2.name}</span> ({isXNext ? 'X' : 'O'})</span>;
+    return <span><span className="text-primary font-semibold">{isXNext ? player1.name : player2.name}'s</span> turn ({isXNext ? 'X' : 'O'})</span>;
   };
   
   const renderGameScreen = () => (
-    <div className="w-full max-w-4xl">
-        <div className="flex justify-between items-center mb-4 text-lg">
-            <div className="text-left">
-                <p className={cn("font-bold transition-all", isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
+    <div className="w-full max-w-4xl flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 animate-[float_3s_ease-in-out_infinite]">
+        <Card className="p-4 bg-card/70 border-2 border-border/50">
+            <div className="flex flex-col items-center gap-2 text-center">
+                 <Image src="https://placehold.co/100x100.png" alt="Player 1 Avatar" width={80} height={80} className="rounded-full border-4 border-primary" data-ai-hint="luffy smiling" />
+                <p className={cn("font-bold text-lg transition-all", isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
                   {player1.name} (X)
                 </p>
             </div>
-            <div className="text-center font-headline text-2xl tracking-wider">
+        </Card>
+        <div className="flex flex-col items-center">
+            <div className="text-center font-headline text-xl md:text-2xl tracking-wider mb-4">
                 {renderGameStatus()}
             </div>
-            <div className="text-right">
-                <p className={cn("font-bold transition-all", !isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
+            <GameBoard board={board} onSquareClick={handleSquareClick} isGameOver={gameStatus !== 'playing'} winningLine={winner?.line ?? null} />
+            <div className="text-center mt-6">
+                <Button onClick={resetGame} variant="secondary" size="lg">New Bounty</Button>
+            </div>
+        </div>
+        <Card className="p-4 bg-card/70 border-2 border-border/50">
+            <div className="flex flex-col items-center gap-2 text-center">
+                <Image src="https://placehold.co/100x100.png" alt="Player 2 Avatar" width={80} height={80} className="rounded-full border-4" data-ai-hint="zoro serious" />
+                <p className={cn("font-bold text-lg transition-all", !isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
                   {player2.name} (O)
                 </p>
             </div>
-        </div>
-      <GameBoard board={board} onSquareClick={handleSquareClick} isGameOver={gameStatus !== 'playing'} winningLine={winner?.line ?? null} />
-      <div className="text-center mt-6">
-        <Button onClick={resetGame} variant="outline" size="lg">New Game</Button>
-      </div>
+        </Card>
     </div>
   );
 
   const renderModeSelection = () => (
-    <Card className="w-full max-w-md animate-fade-in border-border bg-card">
+    <Card className="w-full max-w-md animate-[float_3s_ease-in-out_infinite] border-border bg-card/80 backdrop-blur-sm">
         <CardHeader>
-            <CardTitle className="font-headline text-3xl">Choose Your Challenge</CardTitle>
-            <CardDescription>How will you conquer the grid today?</CardDescription>
+            <CardTitle className="font-headline text-3xl text-center">Choose Your Voyage</CardTitle>
+            <CardDescription className="text-center">A pirate's life is full of choices.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-            <Button size="lg" className="w-full justify-start text-lg p-6" onClick={() => handleSelectMode('cpu')}>
-                <Cpu className="mr-4 h-6 w-6" /> Play vs CPU
+            <Button size="lg" className="w-full justify-center text-lg p-6" onClick={() => handleSelectMode('cpu')}>
+                <Bone className="mr-4 h-6 w-6" /> Battle a Marine
             </Button>
-            <Button size="lg" className="w-full justify-start text-lg p-6" onClick={() => handleSelectMode('1v1')}>
-                <Users className="mr-4 h-6 w-6" /> 1 vs 1
+            <Button size="lg" className="w-full justify-center text-lg p-6" onClick={() => handleSelectMode('1v1')}>
+                <Users className="mr-4 h-6 w-6" /> Crewmate Duel
             </Button>
         </CardContent>
     </Card>
@@ -370,20 +385,20 @@ export default function TicTacToeClient() {
      <Dialog open={true}>
         <DialogContent className="bg-card border-border">
             <DialogHeader>
-                <DialogTitle className="font-headline text-3xl">Select CPU Difficulty</DialogTitle>
-                <DialogDescription>Choose the intelligence of your opponent.</DialogDescription>
+                <DialogTitle className="font-headline text-3xl">Marine Rank</DialogTitle>
+                <DialogDescription>How strong is this Marine?</DialogDescription>
             </DialogHeader>
              <RadioGroup onValueChange={(val: Difficulty) => startCpuGame(val)} className="my-4 space-y-2">
                 <Label htmlFor="easy" className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent/20 hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                    Easy
+                    Seaman
                     <RadioGroupItem value="easy" id="easy" />
                 </Label>
                 <Label htmlFor="medium" className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent/20 hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                    Medium
+                    Captain
                     <RadioGroupItem value="medium" id="medium" />
                 </Label>
                 <Label htmlFor="hard" className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent/20 hover:text-accent-foreground [&:has([data-state=checked])]:border-primary">
-                    Hard
+                    Admiral
                     <RadioGroupItem value="hard" id="hard" />
                 </Label>
             </RadioGroup>
@@ -395,22 +410,23 @@ export default function TicTacToeClient() {
     <Dialog open={true}>
         <DialogContent className="bg-card border-border">
             <DialogHeader>
-                <DialogTitle className="font-headline text-3xl">Player Names</DialogTitle>
-                <DialogDescription>Who is challenging you?</DialogDescription>
+                <DialogTitle className="font-headline text-3xl">Crewmate's Name</DialogTitle>
+                <DialogDescription>Who dares to challenge you?</DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
+            <form onSubmit={(e) => { e.preventDefault(); start1v1Game(); }} className="space-y-4 py-4">
                 <div className="space-y-2">
-                    <Label>Player 1 (X)</Label>
+                    <Label>Pirate 1 (X)</Label>
                     <Input value={player1.name} disabled />
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="p2name">Player 2 (O)</Label>
-                    <Input id="p2name" value={tempPlayer2Name} onChange={(e) => setTempPlayer2Name(e.target.value)} placeholder="Enter Player 2's name" />
+                    <Label htmlFor="p2name">Pirate 2 (O)</Label>
+                    <Input id="p2name" value={tempPlayer2Name} onChange={(e) => setTempPlayer2Name(e.target.value)} placeholder="Enter crewmate's name" />
                 </div>
-            </div>
-            <DialogFooter>
-                <Button onClick={start1v1Game}>Start Game</Button>
-            </DialogFooter>
+                 <DialogFooter>
+                    <Button type="submit">Start Duel</Button>
+                </DialogFooter>
+            </form>
+           
         </DialogContent>
     </Dialog>
   );
@@ -423,26 +439,24 @@ export default function TicTacToeClient() {
   }
 
   return (
-    <div className="w-full max-w-4xl flex flex-col items-center">
-        <header className="w-full text-left mb-8">
-            <h1 className="text-5xl md:text-6xl font-black font-headline tracking-tighter uppercase text-foreground">
-                Tic-Tac-Toe
-            </h1>
-            <div className="mt-2 flex items-center justify-start gap-4 text-muted-foreground border-t-2 border-primary pt-2">
-                 <span>Welcome, <strong className="text-primary font-bold">{playerData.username}</strong></span>
-                <span className="flex items-center gap-1"><Trophy className="h-4 w-4 text-accent" />{playerData.points} pts</span>
+    <div className="w-full max-w-5xl flex flex-col items-center">
+        <header className="w-full text-center mb-8">
+            <StrawHatTitle />
+            <div className="mt-4 flex items-center justify-center gap-4 text-muted-foreground border-t-2 border-primary pt-2">
+                 <span>Welcome, Captain <strong className="text-primary font-bold">{playerData.username}</strong></span>
+                <span className="flex items-center gap-1"><Trophy className="h-4 w-4 text-accent" />{playerData.points} Berries</span>
             </div>
         </header>
 
         <Tabs defaultValue="game" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="game" className="gap-1"><Flame className="h-4 w-4"/>Game</TabsTrigger>
-                <TabsTrigger value="history" className="gap-1"><History className="h-4 w-4"/>History</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 bg-card/80">
+                <TabsTrigger value="game" className="gap-1"><Anchor className="h-4 w-4"/>Game</TabsTrigger>
+                <TabsTrigger value="history" className="gap-1"><History className="h-4 w-4"/>Logbook</TabsTrigger>
             </TabsList>
             <TabsContent value="game" className="mt-6 flex justify-center">
                 {renderContent()}
             </TabsContent>
-            <TabsContent value="history" className="mt-6">
+            <TabsContent value="history" className="mt-6 animate-[float_3s_ease-in-out_infinite_1.5s]">
                 <GameHistory history={playerData.history} />
             </TabsContent>
         </Tabs>

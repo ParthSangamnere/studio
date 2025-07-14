@@ -13,8 +13,8 @@ export default {
         black: '900',
       },
       fontFamily: {
-        body: ['"Space Grotesk"', 'sans-serif'],
-        headline: ['"Space Grotesk"', 'sans-serif'],
+        body: ['"IM Fell English SC"', 'serif'],
+        headline: ['"Uncial Antiqua"', 'cursive'],
         code: ['monospace'],
       },
       colors: {
@@ -91,10 +91,16 @@ export default {
             height: '0',
           },
         },
+        float: {
+          '0%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-8px)' },
+          '100%': { transform: 'translateY(0px)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        float: 'float 4s ease-in-out infinite'
       },
     },
   },
