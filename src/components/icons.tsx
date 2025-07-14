@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 const iconGlow = "drop-shadow-[0_0_3px_hsl(var(--primary))]";
 const accentGlow = "drop-shadow-[0_0_5px_hsl(var(--accent))]";
 
-// A skull for O
+// A gold coin for O
 export const IconO = ({ className, isWinner }: { className?: string; isWinner?: boolean }) => (
   <svg
     className={cn("w-full h-full text-secondary-foreground", isWinner ? accentGlow : iconGlow, className)}
@@ -11,30 +11,28 @@ export const IconO = ({ className, isWinner }: { className?: string; isWinner?: 
     fill="currentColor"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-    <path d="M15.5 12c0 1.93-1.57 3.5-3.5 3.5S8.5 13.93 8.5 12c0-.9.36-1.72.95-2.32.28-.28.73-.28 1.01 0 .28.28.28.73 0 1.01-.39.39-.63.9-.63 1.45 0 1.1.9 2 2 2s2-.9 2-2c0-.55-.24-1.06-.63-1.45-.28-.28-.28-.73 0-1.01.28-.28.73-.28 1.01 0 .59.6 1.04 1.42 1.04 2.32z"/>
-    <circle cx="9" cy="9.5" r="1.5" />
-    <circle cx="15" cy="9.5" r="1.5" />
+    <circle cx="12" cy="12" r="10" fill="hsl(var(--primary))" stroke="hsl(var(--primary-foreground))" strokeWidth="1.5"/>
+    <circle cx="12" cy="12" r="7" fill="none" stroke="hsl(var(--primary-foreground))" strokeWidth="1"/>
+    <text x="12" y="15" textAnchor="middle" fontSize="6" fill="hsl(var(--primary-foreground))" className="font-headline">P</text>
   </svg>
 );
 
 
-// Crossed swords for X
+// Jolly Roger for X
 export const IconX = ({ className, isWinner }: { className?: string; isWinner?: boolean }) => (
   <svg
     className={cn("w-full h-full text-accent", isWinner ? accentGlow : iconGlow, className)}
-    viewBox="0 0 100 100"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="8"
-    strokeLinecap="round"
-    strokeLinejoin="round"
+    viewBox="0 0 64 64"
+    fill="currentColor"
     xmlns="http://www.w3.org/2000/svg"
   >
-    <path d="M85,15 L15,85 M35,15 L15,35 M65,15 L15,65 M85,35 L35,85" strokeWidth="6"/>
-    <path d="M87,13 L13,87" />
-    <path d="M13,13 L87,87" />
-    <path d="M50,10 L50,30 M40,20 L60,20" />
-    <path d="M50,90 L50,70 M40,80 L60,80" />
+    {/* Skull */}
+    <path d="M32 6C19.85 6 10 15.85 10 28c0 5.16 1.76 9.93 4.68 13.84C13.24 43.14 12 45.43 12 48c0 3.31 2.69 6 6 6h28c3.31 0 6-2.69 6-6 0-2.57-1.24-4.86-2.68-6.16C40.24 37.93 42 33.16 42 28c0-12.15-9.85-22-22-22zm-8 20a4 4 0 118 0 4 4 0 01-8 0zm16 0a4 4 0 118 0 4 4 0 01-8 0z" />
+    
+    {/* Crossbones */}
+    <path d="M16.41 41.59a2 2 0 00-2.82 2.82L28.18 59a2 2 0 002.82-2.82L16.41 41.59z" transform="translate(6, -6) rotate(15 22 51)" />
+    <path d="M39.59 41.59a2 2 0 00-2.82 2.82L51.36 59a2 2 0 002.82-2.82L39.59 41.59z" transform="translate(-6, -6) rotate(-15 45 51)"/>
   </svg>
 );
+
+    

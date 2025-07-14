@@ -27,7 +27,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Trophy, Users, Cpu, History, Anchor, Bone, Ship } from "lucide-react";
+import { Trophy, Users, Cpu, History, Ship, Bone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StrawHatTitle } from "@/components/game/StrawHatTitle";
 import Image from "next/image";
@@ -37,13 +37,13 @@ const PLAYER_DATA_KEY = "OASIS_PLAYER_DATA_V1";
 const POINTS = { WIN: 10, DRAW: 2, LOSS: -5 };
 
 const characters: Character[] = [
-  { id: 'luffy', name: 'Luffy', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "luffy smiling" },
-  { id: 'zoro', name: 'Zoro', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "zoro serious" },
-  { id: 'nami', name: 'Nami', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "nami smiling" },
-  { id: 'sanji', name: 'Sanji', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "sanji cool" },
+  { id: 'luffy', name: 'Luffy', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "monkey d luffy" },
+  { id: 'zoro', name: 'Zoro', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "roronoa zoro" },
+  { id: 'nami', name: 'Nami', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "nami one piece" },
+  { id: 'sanji', name: 'Sanji', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "vinsmoke sanji" },
 ];
 
-const cpuCharacter: Character = { id: 'marine', name: 'Marine', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "marine soldier" };
+const cpuCharacter: Character = { id: 'marine', name: 'Marine', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "marine soldier anime" };
 
 function calculateWinner(squares: BoardState): { winner: PlayerSymbol; line: number[] } | null {
   const lines = [
@@ -495,3 +495,5 @@ export default function TicTacToeClient() {
     </div>
   );
 }
+
+    
