@@ -6,26 +6,47 @@ const StrawHat = () => (
       viewBox="0 0 200 100"
       className="absolute -top-16 -left-8 w-40 h-auto transform -rotate-12 drop-shadow-lg"
     >
+      <defs>
+        <filter id="texture" x="0" y="0" width="100%" height="100%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch"/>
+          <feColorMatrix type="matrix" values="1 0 0 0 0, 0 1 0 0 0, 0 0 1 0 0, 0 0 0 -0.2 1.1"/>
+          <feComposite operator="in" in2="SourceGraphic" result="textured"/>
+        </filter>
+      </defs>
       <g>
+        {/* Hat shadow */}
+        <path d="M100,35 C40,35 5,50 5,65 H195 C195,50 160,35 100,35 Z" fill="rgba(0,0,0,0.2)" transform="translate(3, 3)"/>
+
         {/* Hat */}
         <g fill="#FBE4A3" stroke="#D3A12E" strokeWidth="1.5">
           <path d="M100,15 C70,15 50,30 50,45 Q100,60 150,45 C150,30 130,15 100,15 Z" />
           <path d="M100,35 C40,35 5,50 5,65 H195 C195,50 160,35 100,35 Z" />
         </g>
+
+        {/* Hat texture */}
+        <g opacity="0.4" filter="url(#texture)">
+            <path d="M100,15 C70,15 50,30 50,45 Q100,60 150,45 C150,30 130,15 100,15 Z" fill="#D3A12E" />
+            <path d="M100,35 C40,35 5,50 5,65 H195 C195,50 160,35 100,35 Z" fill="#D3A12E" />
+        </g>
+        
         {/* Hat Band */}
-        <rect x="48" y="42" width="104" height="6" fill="#E53E3E" rx="3" transform="rotate(-3 100 45)" />
-        {/* Jolly Roger Skull */}
+        <rect x="48" y="42" width="104" height="6" fill="#E53E3E" rx="3" transform="rotate(-3 100 45)" stroke="#A02C2C" strokeWidth="0.5"/>
+
+        {/* Jolly Roger */}
         <g transform="translate(88, 18) scale(0.25)">
-          <path d="M50,10 C30,10 10,30 10,50 C10,70 30,90 50,90 C70,90 90,70 90,50 C90,30 70,10 50,10 Z" fill="white" />
-          <path d="M35,60 C40,70 60,70 65,60 L60,85 H40 Z" fill="white"/>
-          <circle cx="35" cy="40" r="8" fill="black" />
-          <circle cx="65" cy="40" r="8" fill="black" />
-          <rect x="40" y="25" width="20" height="5" fill="black" />
-          {/* Crossbones */}
-          <g transform="translate(50, 75) rotate(45)">
-            <rect x="-35" y="-5" width="70" height="10" rx="5" fill="white"/>
-            <rect x="-5" y="-35" width="10" height="70" rx="5" fill="white"/>
+          <g fill="white" stroke="black" strokeWidth="2">
+            {/* Skull */}
+            <path d="M50,15 C35,15 20,25 20,40 C20,55 35,65 50,65 C65,65 80,55 80,40 C80,25 65,15 50,15 Z" />
+            <path d="M40,60 C45,70 55,70 60,60 L55,80 H45 Z" />
+            {/* Crossbones */}
+            <g transform="translate(50, 78) rotate(15) scale(1.2)">
+              <rect x="-25" y="-4" width="50" height="8" rx="4"/>
+              <rect x="-4" y="-25" width="8" height="50" rx="4"/>
+            </g>
           </g>
+          {/* Eyes & nose */}
+          <circle cx="38" cy="42" r="6" fill="black" />
+          <circle cx="62" cy="42" r="6" fill="black" />
         </g>
       </g>
     </svg>
@@ -44,5 +65,3 @@ export const StrawHatTitle = () => {
       </div>
     );
   };
-
-    

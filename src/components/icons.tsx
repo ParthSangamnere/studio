@@ -3,22 +3,27 @@ import { cn } from "@/lib/utils";
 const iconGlow = "drop-shadow-[0_0_3px_hsl(var(--primary))]";
 const accentGlow = "drop-shadow-[0_0_5px_hsl(var(--accent))]";
 
-// A gold coin for O
+// A peace symbol for O
 export const IconO = ({ className, isWinner }: { className?: string; isWinner?: boolean }) => (
   <svg
     className={cn("w-full h-full text-secondary-foreground", isWinner ? accentGlow : iconGlow, className)}
     viewBox="0 0 24 24"
-    fill="currentColor"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
     xmlns="http://www.w3.org/2000/svg"
   >
     <circle cx="12" cy="12" r="10" fill="hsl(var(--primary))" stroke="hsl(var(--primary-foreground))" strokeWidth="1.5"/>
-    <circle cx="12" cy="12" r="7" fill="none" stroke="hsl(var(--primary-foreground))" strokeWidth="1"/>
-    <text x="12" y="15" textAnchor="middle" fontSize="6" fill="hsl(var(--primary-foreground))" className="font-headline">P</text>
+    <path d="M12 2v10" stroke="hsl(var(--primary-foreground))" />
+    <path d="M12 12l-4 4" stroke="hsl(var(--primary-foreground))" />
+    <path d="M12 12l4 4" stroke="hsl(var(--primary-foreground))" />
   </svg>
 );
 
 
-// Jolly Roger for X
+// Danger/Pirate symbol for X
 export const IconX = ({ className, isWinner }: { className?: string; isWinner?: boolean }) => (
   <svg
     className={cn("w-full h-full text-accent", isWinner ? accentGlow : iconGlow, className)}
@@ -26,13 +31,17 @@ export const IconX = ({ className, isWinner }: { className?: string; isWinner?: 
     fill="currentColor"
     xmlns="http://www.w3.org/2000/svg"
   >
-    {/* Skull */}
-    <path d="M32 6C19.85 6 10 15.85 10 28c0 5.16 1.76 9.93 4.68 13.84C13.24 43.14 12 45.43 12 48c0 3.31 2.69 6 6 6h28c3.31 0 6-2.69 6-6 0-2.57-1.24-4.86-2.68-6.16C40.24 37.93 42 33.16 42 28c0-12.15-9.85-22-22-22zm-8 20a4 4 0 118 0 4 4 0 01-8 0zm16 0a4 4 0 118 0 4 4 0 01-8 0z" />
-    
-    {/* Crossbones */}
-    <path d="M16.41 41.59a2 2 0 00-2.82 2.82L28.18 59a2 2 0 002.82-2.82L16.41 41.59z" transform="translate(6, -6) rotate(15 22 51)" />
-    <path d="M39.59 41.59a2 2 0 00-2.82 2.82L51.36 59a2 2 0 002.82-2.82L39.59 41.59z" transform="translate(-6, -6) rotate(-15 45 51)"/>
+    <g transform="scale(1.1) translate(-3, -3)">
+        {/* Skull */}
+        <path d="M32 10C22.6 10 15 17.6 15 27c0 7.4 4.5 13.7 10.7 16.3-.5.9-.8 1.9-.8 3 0 3.3 2.7 6 6 6h10c3.3 0 6-2.7 6-6 0-1.1-.3-2.1-.8-3C52.5 40.7 57 34.4 57 27c0-9.4-7.6-17-17-17z"/>
+        {/* Eyes */}
+        <circle cx="26" cy="27" r="4"/>
+        <circle cx="46" cy="27" r="4"/>
+        {/* Crossbones */}
+        <path transform="rotate(-45 22 51)" d="M17 49h10v4H17z"/>
+        <path transform="rotate(-45 22 51)" d="M20 46h4v10h-4z"/>
+        <path transform="rotate(45 50 51)" d="M45 49h10v4H45z"/>
+        <path transform="rotate(45 50 51)" d="M48 46h4v10h-4z"/>
+    </g>
   </svg>
 );
-
-    
