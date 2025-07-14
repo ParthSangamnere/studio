@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { StrawHatTitle } from "@/components/game/StrawHatTitle";
 import Image from "next/image";
 import { AvatarSelector } from "@/components/game/AvatarSelector";
+import { useToast } from "@/hooks/use-toast";
 
 const PLAYER_DATA_KEY = "OASIS_PLAYER_DATA_V1";
 const POINTS = { WIN: 10, DRAW: 2, LOSS: -5 };
@@ -42,6 +43,14 @@ const characters: Character[] = [
   { id: 'zoro', name: 'Zoro', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "roronoa zoro" },
   { id: 'nami', name: 'Nami', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "nami one piece" },
   { id: 'sanji', name: 'Sanji', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "vinsmoke sanji" },
+  { id: 'shanks', name: 'Shanks', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "shanks one piece" },
+  { id: 'usopp', name: 'Usopp', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "usopp one piece" },
+  { id: 'chopper', name: 'Chopper', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "tony tony chopper" },
+  { id: 'robin', name: 'Robin', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "nico robin" },
+  { id: 'franky', name: 'Franky', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "franky one piece" },
+  { id: 'brook', name: 'Brook', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "brook one piece" },
+  { id: 'jinbe', name: 'Jinbe', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "jinbe one piece" },
+  { id: 'ace', name: 'Ace', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "portgas d ace" },
 ];
 
 const cpuCharacter: Character = { id: 'marine', name: 'Marine', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "marine soldier anime" };
@@ -62,6 +71,7 @@ function calculateWinner(squares: BoardState): { winner: PlayerSymbol; line: num
 }
 
 export default function TicTacToeClient() {
+  const { toast } = useToast();
   const [playerData, setPlayerData] = useState<PlayerData | null>(null);
   const [tempUsername, setTempUsername] = useState("");
   const [tempPlayer2Name, setTempPlayer2Name] = useState("");
@@ -545,3 +555,5 @@ export default function TicTacToeClient() {
     </div>
   );
 }
+
+    
