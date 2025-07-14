@@ -68,6 +68,10 @@
   }
 }
 
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
 @keyframes float {
   0% {
     transform: translatey(0px);

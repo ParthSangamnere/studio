@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type {
   BoardState,
   Difficulty,
@@ -27,7 +28,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Trophy, Users, Cpu, History, Ship, Bone } from "lucide-react";
+import { Trophy, Users, Cpu, History, Ship, Bone, Music, MicOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StrawHatTitle } from "@/components/game/StrawHatTitle";
 import Image from "next/image";
@@ -81,16 +82,32 @@ export default function TicTacToeClient() {
   const [isMounted, setIsMounted] = useState(false);
   const [showAvatarSelection, setShowAvatarSelection] = useState(false);
 
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   useEffect(() => {
     setIsMounted(true);
     try {
       const savedData = localStorage.getItem(PLAYER_DATA_KEY);
       if (savedData) {
-        setPlayerData(JSON.parse(savedData));
+        const parsedData = JSON.parse(savedData);
+        if (!parsedData.history) { // Simple data migration if history is missing
+          parsedData.history = [];
+        }
+        setPlayerData(parsedData);
       }
+      audioRef.current = new Audio('/drums-of-liberation.mp3');
+      audioRef.current.loop = true;
+
     } catch (error) {
-      console.error("Could not load player data", error);
+      console.error("Could not load player data or audio", error);
     }
+     return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -103,6 +120,18 @@ export default function TicTacToeClient() {
     }
   }, [playerData, isMounted]);
 
+  const toggleMusic = () => {
+    if (audioRef.current) {
+      if (isMusicPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play().catch(e => console.error("Audio play failed:", e));
+      }
+      setIsMusicPlaying(!isMusicPlaying);
+    }
+  };
+
+
   const updateHistoryAndPoints = useCallback((result: 'win' | 'loss' | 'draw', opponent: string, pointsChange: number) => {
     if (!playerData) return;
     const newHistoryEntry: HistoryEntry = {
@@ -112,11 +141,15 @@ export default function TicTacToeClient() {
       points: pointsChange,
       date: new Date().toLocaleDateString(),
     };
-    setPlayerData(prev => prev ? {
-      ...prev,
-      points: prev.points + pointsChange,
-      history: [newHistoryEntry, ...prev.history],
-    } : null);
+    setPlayerData(prev => {
+      if (!prev) return null;
+      const updatedHistory = [newHistoryEntry, ...(prev.history || [])];
+      return {
+        ...prev,
+        points: prev.points + pointsChange,
+        history: updatedHistory,
+      };
+    });
   }, [playerData]);
   
   const handleGameEnd = useCallback((currentBoard: BoardState) => {
@@ -184,7 +217,9 @@ export default function TicTacToeClient() {
       setShowAvatarSelection(false);
 
       if (gameMode === 'cpu' && p1) {
-          setDifficulty('easy'); // Trigger difficulty selection
+          // Now we trigger difficulty selection, so don't set difficulty here.
+          // This state will be used to show the difficulty dialog.
+          setDifficulty(null); 
       } else if (gameMode === '1v1' && p1 && p2) {
           // Trigger 1v1 name prompt
           setTempPlayer2Name("");
@@ -263,7 +298,7 @@ export default function TicTacToeClient() {
               }
           }
       }
-      return bestMove !== -1 ? bestMove : (board.findIndex(s => s === null));
+      return bestMove !== -1 ? bestMove : (board.findIndex(s => s === null) ?? -1);
   }
 
   const minimax = (board: BoardState, depth: number, isMax: boolean): number => {
@@ -298,20 +333,26 @@ export default function TicTacToeClient() {
   const handleSquareClick = (index: number) => {
     if (winner || board[index] || gameStatus !== 'playing') return;
     
+    const currentTurnPlayer = isXNext ? player1.symbol : player2.symbol;
+    if (gameMode === 'cpu' && currentTurnPlayer === 'O') {
+      return; // Prevent human from playing as O in CPU mode
+    }
+
     const newBoard = [...board];
     newBoard[index] = isXNext ? 'X' : 'O';
     setBoard(newBoard);
-    const nextPlayer = !isXNext;
-    setIsXNext(nextPlayer);
+    const nextPlayerIsX = !isXNext;
+    setIsXNext(nextPlayerIsX);
     
-    const gameResultBoard = [...newBoard];
-    handleGameEnd(gameResultBoard);
+    // Check for game end immediately after human move
+    const gameResultCheckBoard = [...newBoard];
+    handleGameEnd(gameResultCheckBoard);
 
-    if (gameMode === 'cpu' && nextPlayer === false) {
-        const currentWinner = calculateWinner(gameResultBoard);
-        const isBoardFull = gameResultBoard.every(Boolean);
-        if (!currentWinner && !isBoardFull) {
-            makeCpuMove(gameResultBoard);
+    // If game continues and it's CPU's turn
+    if (gameMode === 'cpu' && !nextPlayerIsX) {
+        const gameNotOver = !calculateWinner(gameResultCheckBoard) && gameResultCheckBoard.some(sq => sq === null);
+        if (gameNotOver) {
+            makeCpuMove(gameResultCheckBoard);
         }
     }
   };
@@ -352,11 +393,16 @@ export default function TicTacToeClient() {
     if (gameStatus === "draw") {
       return <span>It's a draw!</span>;
     }
-    return <span><span className="text-primary font-semibold">{isXNext ? player1.name : player2.name}'s</span> turn ({isXNext ? 'X' : 'O'})</span>;
+    const currentPlayer = isXNext ? player1 : player2;
+    const isCpuTurn = gameMode === 'cpu' && currentPlayer.symbol === 'O';
+    if(isCpuTurn) {
+      return <span>Marine is thinking...</span>;
+    }
+    return <span><span className="text-primary font-semibold">{currentPlayer.name}'s</span> turn ({currentPlayer.symbol})</span>;
   };
   
   const renderGameScreen = () => (
-    <div className="w-full max-w-4xl flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 animate-[float_3s_ease-in-out_infinite]">
+    <div className="w-full max-w-4xl flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 animate-float">
         <Card className="p-4 bg-card/70 border-2 border-border/50">
             <div className="flex flex-col items-center gap-2 text-center">
                  {player1.avatar && <Image src={player1.avatar.avatarUrl} alt={player1.avatar.name} width={80} height={80} className="rounded-full border-4 border-primary" data-ai-hint={player1.avatar['data-ai-hint']} />}
@@ -386,7 +432,7 @@ export default function TicTacToeClient() {
   );
 
   const renderModeSelection = () => (
-    <Card className="w-full max-w-md animate-[float_3s_ease-in-out_infinite] border-border bg-card/80 backdrop-blur-sm">
+    <Card className="w-full max-w-md animate-float border-border bg-card/80 backdrop-blur-sm">
         <CardHeader>
             <CardTitle className="font-headline text-3xl text-center">Choose Your Voyage</CardTitle>
             <CardDescription className="text-center">A pirate's life is full of choices.</CardDescription>
@@ -472,12 +518,16 @@ export default function TicTacToeClient() {
 
   return (
     <div className="w-full max-w-5xl flex flex-col items-center">
-        <header className="w-full text-center mb-8">
+        <header className="w-full text-center mb-4 relative">
             <StrawHatTitle />
             <div className="mt-4 flex items-center justify-center gap-4 text-muted-foreground border-t-2 border-primary pt-2">
                  <span>Welcome, Captain <strong className="text-primary font-bold">{playerData.username}</strong></span>
                 <span className="flex items-center gap-1"><Trophy className="h-4 w-4 text-accent" />{playerData.points} Berries</span>
             </div>
+            <Button onClick={toggleMusic} variant="ghost" size="icon" className="absolute top-0 right-0">
+                {isMusicPlaying ? <MicOff /> : <Music />}
+                <span className="sr-only">{isMusicPlaying ? "Turn music off" : "Turn music on"}</span>
+            </Button>
         </header>
 
         <Tabs defaultValue="game" className="w-full">
@@ -488,12 +538,10 @@ export default function TicTacToeClient() {
             <TabsContent value="game" className="mt-6 flex justify-center">
                 {renderContent()}
             </TabsContent>
-            <TabsContent value="history" className="mt-6 animate-[float_3s_ease-in-out_infinite_1.5s]">
+            <TabsContent value="history" className="mt-6 animate-float">
                 <GameHistory history={playerData.history} />
             </TabsContent>
         </Tabs>
     </div>
   );
 }
-
-    

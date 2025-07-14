@@ -18,7 +18,7 @@ interface GameHistoryProps {
 }
 
 export function GameHistory({ history }: GameHistoryProps) {
-  if (history.length === 0) {
+  if (!history || history.length === 0) {
     return (
       <div className="text-center text-muted-foreground py-10">
         No games played yet. Let's change that!
