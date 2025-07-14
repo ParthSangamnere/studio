@@ -9,6 +9,9 @@ export default {
   ],
   theme: {
     extend: {
+      fontWeight: {
+        black: '900',
+      },
       fontFamily: {
         body: ['"Space Grotesk"', 'sans-serif'],
         headline: ['"Space Grotesk"', 'sans-serif'],

@@ -86,9 +86,8 @@ export default function TicTacToeClient() {
     }
   }, [playerData, isMounted]);
 
-  const updateHistoryAndPoints = useCallback((result: 'win' | 'loss' | 'draw', opponent: string) => {
+  const updateHistoryAndPoints = useCallback((result: 'win' | 'loss' | 'draw', opponent: string, pointsChange: number) => {
     if (!playerData) return;
-    const pointsChange = result === 'win' ? POINTS.WIN : result === 'draw' ? POINTS.DRAW : POINTS.LOSS;
     const newHistoryEntry: HistoryEntry = {
       id: new Date().toISOString(),
       opponent,
@@ -102,29 +101,38 @@ export default function TicTacToeClient() {
       history: [newHistoryEntry, ...prev.history],
     } : null);
   }, [playerData]);
-
+  
   const handleGameEnd = useCallback((currentBoard: BoardState) => {
     const winnerInfo = calculateWinner(currentBoard);
     if (winnerInfo) {
       setWinner(winnerInfo);
       setGameStatus("win");
       if (gameMode === 'cpu') {
-        const result = winnerInfo.winner === player1.symbol ? 'win' : 'loss';
-        updateHistoryAndPoints(result, `CPU (${difficulty})`);
-      } else if(gameMode === '1v1') {
-        // In 1v1, only the main user's record is tracked
-        const winningPlayer = winnerInfo.winner === player1.symbol ? player1 : player2;
-        if (winningPlayer.name === playerData?.username) {
-            updateHistoryAndPoints('win', player2.name);
+        const isWin = winnerInfo.winner === player1.symbol;
+        const result = isWin ? 'win' : 'loss';
+        const points = isWin ? POINTS.WIN : POINTS.LOSS;
+        updateHistoryAndPoints(result, `CPU (${difficulty})`, points);
+      } else if (gameMode === '1v1' && playerData) {
+        if (winnerInfo.winner === player1.symbol) {
+          updateHistoryAndPoints('win', player2.name, POINTS.WIN);
+        } else {
+           // This logic assumes we are tracking the main player's stats even in losses.
+           // If we only track P1, we would check if P2 won and record a loss for P1.
+           // The current implementation only records wins for P1 in 1v1.
+           // For a complete history, we should record losses too.
+           // Let's assume the main user is always player1
+           updateHistoryAndPoints('loss', player2.name, POINTS.LOSS);
         }
       }
     } else if (currentBoard.every(Boolean)) {
       setGameStatus("draw");
-      if (gameMode === 'cpu') {
-        updateHistoryAndPoints('draw', `CPU (${difficulty})`);
+      if (gameMode === 'cpu' || gameMode === '1v1') {
+        const opponent = gameMode === 'cpu' ? `CPU (${difficulty})` : player2.name;
+        updateHistoryAndPoints('draw', opponent, POINTS.DRAW);
       }
     }
-  }, [gameMode, difficulty, player1, player2, updateHistoryAndPoints, playerData?.username]);
+  }, [gameMode, difficulty, player1, player2, updateHistoryAndPoints, playerData]);
+
 
   const resetGame = () => {
     setBoard(Array(9).fill(null));
@@ -133,9 +141,12 @@ export default function TicTacToeClient() {
     setWinner(null);
     setGameMode(null);
     setDifficulty(null);
+    setPlayer1({ name: "", symbol: "X" });
+    setPlayer2({ name: "", symbol: "O" });
   };
   
-  const handleSetUsername = () => {
+  const handleSetUsername = (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (tempUsername.trim()) {
       setPlayerData({
         username: tempUsername.trim(),
@@ -174,7 +185,8 @@ export default function TicTacToeClient() {
     const findWinningMove = (player: PlayerSymbol) => {
         for (const i of availableSquares) {
             const tempBoard = [...currentBoard];
-            tempBoard[i as number] = player;
+            if (i === null) continue;
+            tempBoard[i] = player;
             if (calculateWinner(tempBoard)?.winner === player) {
                 return i;
             }
@@ -275,28 +287,28 @@ export default function TicTacToeClient() {
   }, [isXNext, board, gameMode, gameStatus, makeCpuMove]);
 
   if (!isMounted) {
-    return <div className="text-2xl font-bold tracking-widest animate-pulse">LOADING OASIS...</div>;
+    return <div className="text-2xl font-bold tracking-widest animate-pulse">LOADING...</div>;
   }
 
   if (!playerData) {
     return (
       <Dialog open={true}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-card border-border">
           <DialogHeader>
-            <DialogTitle className="font-headline text-3xl">Welcome to the OASIS</DialogTitle>
+            <DialogTitle className="font-headline text-3xl text-primary">Enter the Grid</DialogTitle>
             <DialogDescription>
-              Please enter your username to begin your journey.
+              State your name, challenger.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex items-center space-x-2">
+          <form onSubmit={handleSetUsername} className="flex items-center space-x-2">
             <div className="grid flex-1 gap-2">
               <Label htmlFor="username" className="sr-only">Username</Label>
-              <Input id="username" value={tempUsername} onChange={(e) => setTempUsername(e.target.value)} placeholder="Your awesome name..." />
+              <Input id="username" value={tempUsername} onChange={(e) => setTempUsername(e.target.value)} placeholder="Your name..." />
             </div>
-            <Button type="submit" size="sm" className="px-3" onClick={handleSetUsername}>
+            <Button type="submit" size="sm" className="px-3">
               Enter
             </Button>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
     );
@@ -308,7 +320,7 @@ export default function TicTacToeClient() {
       return <span className="text-accent">{winnerPlayer.name} wins!</span>;
     }
     if (gameStatus === "draw") {
-      return <span>It's a draw!</span>;
+      return <span>Draw</span>;
     }
     return <span>Turn: <span className="text-primary font-semibold">{isXNext ? player1.name : player2.name}</span> ({isXNext ? 'X' : 'O'})</span>;
   };
@@ -317,30 +329,28 @@ export default function TicTacToeClient() {
     <div className="w-full max-w-4xl">
         <div className="flex justify-between items-center mb-4 text-lg">
             <div className="text-left">
-                <p className={cn("font-bold transition-all", isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]" : "text-muted-foreground")}>
+                <p className={cn("font-bold transition-all", isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
                   {player1.name} (X)
                 </p>
-                {gameMode === '1v1' && <p className="text-sm text-muted-foreground">User: {playerData.username}</p>}
             </div>
             <div className="text-center font-headline text-2xl tracking-wider">
                 {renderGameStatus()}
             </div>
             <div className="text-right">
-                <p className={cn("font-bold transition-all", !isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_8px_hsl(var(--primary))]" : "text-muted-foreground")}>
+                <p className={cn("font-bold transition-all", !isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
                   {player2.name} (O)
                 </p>
-                 {gameMode === '1v1' && player2.name === playerData.username && <p className="text-sm text-muted-foreground">User</p>}
             </div>
         </div>
       <GameBoard board={board} onSquareClick={handleSquareClick} isGameOver={gameStatus !== 'playing'} winningLine={winner?.line ?? null} />
-      <div className="text-center mt-4">
-        <Button onClick={resetGame} variant="outline">New Game</Button>
+      <div className="text-center mt-6">
+        <Button onClick={resetGame} variant="outline" size="lg">New Game</Button>
       </div>
     </div>
   );
 
   const renderModeSelection = () => (
-    <Card className="w-full max-w-md animate-fade-in">
+    <Card className="w-full max-w-md animate-fade-in border-border bg-card">
         <CardHeader>
             <CardTitle className="font-headline text-3xl">Choose Your Challenge</CardTitle>
             <CardDescription>How will you conquer the grid today?</CardDescription>
@@ -358,7 +368,7 @@ export default function TicTacToeClient() {
 
   const renderCpuDifficultySelection = () => (
      <Dialog open={true}>
-        <DialogContent>
+        <DialogContent className="bg-card border-border">
             <DialogHeader>
                 <DialogTitle className="font-headline text-3xl">Select CPU Difficulty</DialogTitle>
                 <DialogDescription>Choose the intelligence of your opponent.</DialogDescription>
@@ -383,7 +393,7 @@ export default function TicTacToeClient() {
 
   const render1v1Prompt = () => (
     <Dialog open={true}>
-        <DialogContent>
+        <DialogContent className="bg-card border-border">
             <DialogHeader>
                 <DialogTitle className="font-headline text-3xl">Player Names</DialogTitle>
                 <DialogDescription>Who is challenging you?</DialogDescription>
@@ -414,14 +424,14 @@ export default function TicTacToeClient() {
 
   return (
     <div className="w-full max-w-4xl flex flex-col items-center">
-        <header className="text-center mb-8">
-            <h1 className="text-5xl font-bold font-headline tracking-widest text-primary drop-shadow-[0_0_10px_hsl(var(--primary))]">
-                OASIS Tic-Tac-Toe
+        <header className="w-full text-left mb-8">
+            <h1 className="text-5xl md:text-6xl font-black font-headline tracking-tighter uppercase text-foreground">
+                Tic-Tac-Toe
             </h1>
-            <p className="text-muted-foreground mt-2 flex items-center justify-center gap-4">
-                <span>Welcome, <strong className="text-primary">{playerData.username}</strong></span>
+            <div className="mt-2 flex items-center justify-start gap-4 text-muted-foreground border-t-2 border-primary pt-2">
+                 <span>Welcome, <strong className="text-primary font-bold">{playerData.username}</strong></span>
                 <span className="flex items-center gap-1"><Trophy className="h-4 w-4 text-accent" />{playerData.points} pts</span>
-            </p>
+            </div>
         </header>
 
         <Tabs defaultValue="game" className="w-full">

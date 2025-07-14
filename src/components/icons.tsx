@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
-const iconGlow = "drop-shadow-[0_0_8px_hsl(var(--primary))]";
-const accentGlow = "drop-shadow-[0_0_8px_hsl(var(--accent))]";
+const iconGlow = "drop-shadow-[0_0_3px_hsl(var(--primary))]";
+const accentGlow = "drop-shadow-[0_0_5px_hsl(var(--accent))]";
 
 export const IconO = ({ className, isWinner }: { className?: string; isWinner?: boolean }) => (
   <svg
