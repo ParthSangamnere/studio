@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -78,7 +79,7 @@ export function AvatarSelector({ characters, onSelect, mode, player1Name }: Avat
               )}
             >
               <CardContent className="p-2 flex flex-col items-center gap-2">
-                <Image src={char.avatarUrl} alt={char.name} width={80} height={80} className="rounded-md" data-ai-hint={char['data-ai-hint']} />
+                <Image src={char.avatarUrl} alt={char.name} width={80} height={80} className="rounded-md" />
                 <p className="font-body font-bold text-center">{char.name}</p>
               </CardContent>
             </Card>
@@ -93,3 +94,5 @@ export function AvatarSelector({ characters, onSelect, mode, player1Name }: Avat
     </Dialog>
   );
 }
+
+    

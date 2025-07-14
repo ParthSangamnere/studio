@@ -39,21 +39,21 @@ const PLAYER_DATA_KEY = "OASIS_PLAYER_DATA_V1";
 const POINTS = { WIN: 10, DRAW: 2, LOSS: -5 };
 
 const characters: Character[] = [
-  { id: 'luffy', name: 'Luffy', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "monkey d luffy" },
-  { id: 'zoro', name: 'Zoro', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "roronoa zoro" },
-  { id: 'nami', name: 'Nami', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "nami one piece" },
-  { id: 'sanji', name: 'Sanji', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "vinsmoke sanji" },
-  { id: 'shanks', name: 'Shanks', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "shanks one piece" },
-  { id: 'usopp', name: 'Usopp', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "usopp one piece" },
-  { id: 'chopper', name: 'Chopper', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "tony tony chopper" },
-  { id: 'robin', name: 'Robin', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "nico robin" },
-  { id: 'franky', name: 'Franky', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "franky one piece" },
-  { id: 'brook', name: 'Brook', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "brook one piece" },
-  { id: 'jinbe', name: 'Jinbe', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "jinbe one piece" },
-  { id: 'ace', name: 'Ace', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "portgas d ace" },
+  { id: 'luffy', name: 'Luffy', avatarUrl: '/characters/luffy.png' },
+  { id: 'zoro', name: 'Zoro', avatarUrl: '/characters/zoro.png' },
+  { id: 'nami', name: 'Nami', avatarUrl: '/characters/nami.png' },
+  { id: 'sanji', name: 'Sanji', avatarUrl: '/characters/sanji.png' },
+  { id: 'shanks', name: 'Shanks', avatarUrl: '/characters/shanks.png' },
+  { id: 'usopp', name: 'Usopp', avatarUrl: '/characters/usopp.png' },
+  { id: 'chopper', name: 'Chopper', avatarUrl: '/characters/chopper.png' },
+  { id: 'robin', name: 'Robin', avatarUrl: '/characters/robin.png' },
+  { id: 'franky', name: 'Franky', avatarUrl: '/characters/franky.png' },
+  { id: 'brook', name: 'Brook', avatarUrl: '/characters/brook.png' },
+  { id: 'jinbe', name: 'Jinbe', avatarUrl: '/characters/jinbe.png' },
+  { id: 'ace', name: 'Ace', avatarUrl: '/characters/ace.png' },
 ];
 
-const cpuCharacter: Character = { id: 'marine', name: 'Marine', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "marine soldier anime" };
+const cpuCharacter: Character = { id: 'marine', name: 'Marine', avatarUrl: '/characters/marine.png' };
 
 function calculateWinner(squares: BoardState): { winner: PlayerSymbol; line: number[] } | null {
   const lines = [
@@ -82,7 +82,7 @@ export default function TicTacToeClient() {
   const [board, setBoard] = useState<BoardState>(Array(9).fill(null));
   const [gameMode, setGameMode] = useState<GameMode>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>(null);
-  const [isXNext, setIsXNext] = useState(true);
+  const [isXNext, setIsXNext] = useState(isXNext);
   const [gameStatus, setGameStatus] = useState<GameStatus>("playing");
   const [winner, setWinner] = useState<{ winner: PlayerSymbol; line: number[] } | null>(null);
 
@@ -356,14 +356,12 @@ export default function TicTacToeClient() {
     
     // Check for game end immediately after human move
     const gameResultCheckBoard = [...newBoard];
-    handleGameEnd(gameResultCheckBoard);
+    const gameResult = calculateWinner(gameResultCheckBoard);
 
-    // If game continues and it's CPU's turn
-    if (gameMode === 'cpu' && !nextPlayerIsX) {
-        const gameNotOver = !calculateWinner(gameResultCheckBoard) && gameResultCheckBoard.some(sq => sq === null);
-        if (gameNotOver) {
-            makeCpuMove(gameResultCheckBoard);
-        }
+    if (gameResult || !gameResultCheckBoard.some(sq => sq === null)) {
+      handleGameEnd(gameResultCheckBoard);
+    } else if (gameMode === 'cpu' && !nextPlayerIsX) {
+      makeCpuMove(gameResultCheckBoard);
     }
   };
   
@@ -415,7 +413,7 @@ export default function TicTacToeClient() {
     <div className="w-full max-w-4xl flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 animate-float">
         <Card className="p-4 bg-card/70 border-2 border-border/50">
             <div className="flex flex-col items-center gap-2 text-center">
-                 {player1.avatar && <Image src={player1.avatar.avatarUrl} alt={player1.avatar.name} width={80} height={80} className="rounded-full border-4 border-primary" data-ai-hint={player1.avatar['data-ai-hint']} />}
+                 {player1.avatar && <Image src={player1.avatar.avatarUrl} alt={player1.avatar.name} width={80} height={80} className="rounded-full border-4 border-primary" />}
                 <p className={cn("font-bold text-lg transition-all", isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
                   {player1.name} (X)
                 </p>
@@ -432,7 +430,7 @@ export default function TicTacToeClient() {
         </div>
         <Card className="p-4 bg-card/70 border-2 border-border/50">
             <div className="flex flex-col items-center gap-2 text-center">
-                {player2.avatar && <Image src={player2.avatar.avatarUrl} alt={player2.avatar.name} width={80} height={80} className="rounded-full border-4" data-ai-hint={player2.avatar['data-ai-hint']} />}
+                {player2.avatar && <Image src={player2.avatar.avatarUrl} alt={player2.avatar.name} width={80} height={80} className="rounded-full border-4" />}
                 <p className={cn("font-bold text-lg transition-all", !isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
                   {player2.name} (O)
                 </p>
