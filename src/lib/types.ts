@@ -18,3 +18,10 @@ export type PlayerData = {
   points: number;
   history: HistoryEntry[];
 };
+
+export type Character = {
+  id: string;
+  name: string;
+  avatarUrl: string;
+  'data-ai-hint'?: string;
+};

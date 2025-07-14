@@ -9,6 +9,7 @@ import type {
   HistoryEntry,
   PlayerData,
   PlayerSymbol,
+  Character,
 } from "@/lib/types";
 import { GameBoard } from "@/components/game/GameBoard";
 import { GameHistory } from "@/components/game/GameHistory";
@@ -26,13 +27,23 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Trophy, Users, Cpu, History, Anchor, Bone } from "lucide-react";
+import { Trophy, Users, Cpu, History, Anchor, Bone, Ship } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StrawHatTitle } from "@/components/game/StrawHatTitle";
 import Image from "next/image";
+import { AvatarSelector } from "@/components/game/AvatarSelector";
 
 const PLAYER_DATA_KEY = "OASIS_PLAYER_DATA_V1";
 const POINTS = { WIN: 10, DRAW: 2, LOSS: -5 };
+
+const characters: Character[] = [
+  { id: 'luffy', name: 'Luffy', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "luffy smiling" },
+  { id: 'zoro', name: 'Zoro', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "zoro serious" },
+  { id: 'nami', name: 'Nami', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "nami smiling" },
+  { id: 'sanji', name: 'Sanji', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "sanji cool" },
+];
+
+const cpuCharacter: Character = { id: 'marine', name: 'Marine', avatarUrl: 'https://placehold.co/100x100.png', "data-ai-hint": "marine soldier" };
 
 function calculateWinner(squares: BoardState): { winner: PlayerSymbol; line: number[] } | null {
   const lines = [
@@ -53,6 +64,9 @@ export default function TicTacToeClient() {
   const [playerData, setPlayerData] = useState<PlayerData | null>(null);
   const [tempUsername, setTempUsername] = useState("");
   const [tempPlayer2Name, setTempPlayer2Name] = useState("");
+  
+  const [player1Character, setPlayer1Character] = useState<Character | null>(null);
+  const [player2Character, setPlayer2Character] = useState<Character | null>(null);
 
   const [board, setBoard] = useState<BoardState>(Array(9).fill(null));
   const [gameMode, setGameMode] = useState<GameMode>(null);
@@ -61,10 +75,11 @@ export default function TicTacToeClient() {
   const [gameStatus, setGameStatus] = useState<GameStatus>("playing");
   const [winner, setWinner] = useState<{ winner: PlayerSymbol; line: number[] } | null>(null);
 
-  const [player1, setPlayer1] = useState<{ name: string; symbol: PlayerSymbol }>({ name: "", symbol: "X" });
-  const [player2, setPlayer2] = useState<{ name: string; symbol: PlayerSymbol }>({ name: "", symbol: "O" });
+  const [player1, setPlayer1] = useState<{ name: string; symbol: PlayerSymbol; avatar: Character | null }>({ name: "", symbol: "X", avatar: null });
+  const [player2, setPlayer2] = useState<{ name: string; symbol: PlayerSymbol; avatar: Character | null }>({ name: "", symbol: "O", avatar: null });
   
   const [isMounted, setIsMounted] = useState(false);
+  const [showAvatarSelection, setShowAvatarSelection] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -115,6 +130,7 @@ export default function TicTacToeClient() {
         const points = isPlayer1Win ? POINTS.WIN : POINTS.LOSS;
         updateHistoryAndPoints(result, `CPU (${difficulty})`, points);
       } else if (gameMode === '1v1' && playerData) {
+        // In 1v1, only Player 1's history is tracked.
         if (isPlayer1Win) {
           updateHistoryAndPoints('win', player2.name, POINTS.WIN);
         } else {
@@ -123,7 +139,7 @@ export default function TicTacToeClient() {
       }
     } else if (currentBoard.every(Boolean)) {
       setGameStatus("draw");
-      if (gameMode === 'cpu' || gameMode === '1v1') {
+      if ((gameMode === 'cpu' || gameMode === '1v1') && playerData) {
         const opponent = gameMode === 'cpu' ? `CPU (${difficulty})` : player2.name;
         updateHistoryAndPoints('draw', opponent, POINTS.DRAW);
       }
@@ -138,8 +154,11 @@ export default function TicTacToeClient() {
     setWinner(null);
     setGameMode(null);
     setDifficulty(null);
-    setPlayer1({ name: "", symbol: "X" });
-    setPlayer2({ name: "", symbol: "O" });
+    setPlayer1({ name: "", symbol: "X", avatar: null });
+    setPlayer2({ name: "", symbol: "O", avatar: null });
+    setPlayer1Character(null);
+    setPlayer2Character(null);
+    setShowAvatarSelection(false);
   };
   
   const handleSetUsername = (e?: React.FormEvent) => {
@@ -155,20 +174,33 @@ export default function TicTacToeClient() {
   
   const handleSelectMode = (mode: GameMode) => {
     setGameMode(mode);
-    if (mode === '1v1') {
-      setPlayer1({ name: playerData?.username ?? "Player 1", symbol: "X" });
-    }
+    setShowAvatarSelection(true);
+    setPlayer1({ ...player1, name: playerData?.username ?? "Player 1" });
+  };
+
+  const handleAvatarSelect = (p1?: Character, p2?: Character) => {
+      setPlayer1Character(p1 || null);
+      setPlayer2Character(p2 || null);
+      setShowAvatarSelection(false);
+
+      if (gameMode === 'cpu' && p1) {
+          setDifficulty('easy'); // Trigger difficulty selection
+      } else if (gameMode === '1v1' && p1 && p2) {
+          // Trigger 1v1 name prompt
+          setTempPlayer2Name("");
+      }
   };
 
   const startCpuGame = (level: Difficulty) => {
     setDifficulty(level);
-    setPlayer1({ name: playerData?.username ?? "Player 1", symbol: "X" });
-    setPlayer2({ name: `CPU (${level})`, symbol: "O" });
+    setPlayer1({ name: playerData?.username ?? "Player 1", symbol: "X", avatar: player1Character });
+    setPlayer2({ name: `CPU (${level})`, symbol: "O", avatar: cpuCharacter });
   };
 
   const start1v1Game = () => {
     if (tempPlayer2Name.trim()) {
-      setPlayer2({ name: tempPlayer2Name.trim(), symbol: "O" });
+      setPlayer1({ name: playerData?.username ?? "Player 1", symbol: "X", avatar: player1Character });
+      setPlayer2({ name: tempPlayer2Name.trim(), symbol: "O", avatar: player2Character });
       setTempPlayer2Name("");
     }
   };
@@ -194,14 +226,11 @@ export default function TicTacToeClient() {
         const bestMove = findBestMove(currentBoard, 'O');
         move = bestMove;
     } else if (difficulty === 'medium') {
-        // 1. Win if possible
         const cpuWinMove = findWinningMove('O');
         if(cpuWinMove !== null) { move = cpuWinMove; }
-        // 2. Block if necessary
         else {
             const playerWinMove = findWinningMove('X');
             if (playerWinMove !== null) { move = playerWinMove; }
-            // 3. Random move
             else { move = availableSquares[Math.floor(Math.random() * availableSquares.length)]; }
         }
     } else { // Easy
@@ -278,8 +307,7 @@ export default function TicTacToeClient() {
     const gameResultBoard = [...newBoard];
     handleGameEnd(gameResultBoard);
 
-    if (gameMode === 'cpu' && nextPlayer === false && !calculateWinner(gameResultBoard) && gameResultBoard.some(s => s === null)) {
-        // The handleGameEnd might have set status to win/draw, check again
+    if (gameMode === 'cpu' && nextPlayer === false) {
         const currentWinner = calculateWinner(gameResultBoard);
         const isBoardFull = gameResultBoard.every(Boolean);
         if (!currentWinner && !isBoardFull) {
@@ -288,13 +316,6 @@ export default function TicTacToeClient() {
     }
   };
   
-  useEffect(() => {
-    if (gameMode === 'cpu' && !isXNext && gameStatus === 'playing' && !winner) {
-      makeCpuMove(board);
-    }
-  }, [isXNext, board, gameMode, gameStatus, makeCpuMove, winner]);
-
-
   if (!isMounted) {
     return <div className="text-2xl font-bold tracking-widest animate-pulse">LOADING...</div>;
   }
@@ -338,7 +359,7 @@ export default function TicTacToeClient() {
     <div className="w-full max-w-4xl flex flex-col md:flex-row items-center justify-center gap-8 md:gap-12 animate-[float_3s_ease-in-out_infinite]">
         <Card className="p-4 bg-card/70 border-2 border-border/50">
             <div className="flex flex-col items-center gap-2 text-center">
-                 <Image src="https://placehold.co/100x100.png" alt="Player 1 Avatar" width={80} height={80} className="rounded-full border-4 border-primary" data-ai-hint="luffy smiling" />
+                 {player1.avatar && <Image src={player1.avatar.avatarUrl} alt={player1.avatar.name} width={80} height={80} className="rounded-full border-4 border-primary" data-ai-hint={player1.avatar['data-ai-hint']} />}
                 <p className={cn("font-bold text-lg transition-all", isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
                   {player1.name} (X)
                 </p>
@@ -355,7 +376,7 @@ export default function TicTacToeClient() {
         </div>
         <Card className="p-4 bg-card/70 border-2 border-border/50">
             <div className="flex flex-col items-center gap-2 text-center">
-                <Image src="https://placehold.co/100x100.png" alt="Player 2 Avatar" width={80} height={80} className="rounded-full border-4" data-ai-hint="zoro serious" />
+                {player2.avatar && <Image src={player2.avatar.avatarUrl} alt={player2.avatar.name} width={80} height={80} className="rounded-full border-4" data-ai-hint={player2.avatar['data-ai-hint']} />}
                 <p className={cn("font-bold text-lg transition-all", !isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
                   {player2.name} (O)
                 </p>
@@ -431,11 +452,22 @@ export default function TicTacToeClient() {
     </Dialog>
   );
 
+  const renderAvatarSelection = () => (
+     <AvatarSelector
+        characters={characters}
+        onSelect={handleAvatarSelect}
+        mode={gameMode!}
+        player1Name={playerData?.username ?? 'Player 1'}
+    />
+  )
+
   const renderContent = () => {
     if (gameMode === null) return renderModeSelection();
+    if (showAvatarSelection) return renderAvatarSelection();
     if (gameMode === 'cpu' && difficulty === null) return renderCpuDifficultySelection();
     if (gameMode === '1v1' && !player2.name) return render1v1Prompt();
-    return renderGameScreen();
+    if ((gameMode === 'cpu' && difficulty) || (gameMode === '1v1' && player2.name)) return renderGameScreen();
+    return renderModeSelection(); // Fallback
   }
 
   return (
@@ -450,7 +482,7 @@ export default function TicTacToeClient() {
 
         <Tabs defaultValue="game" className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-card/80">
-                <TabsTrigger value="game" className="gap-1"><Anchor className="h-4 w-4"/>Game</TabsTrigger>
+                <TabsTrigger value="game" className="gap-1"><Ship className="h-4 w-4"/>Game</TabsTrigger>
                 <TabsTrigger value="history" className="gap-1"><History className="h-4 w-4"/>Logbook</TabsTrigger>
             </TabsList>
             <TabsContent value="game" className="mt-6 flex justify-center">

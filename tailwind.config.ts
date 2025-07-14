@@ -13,8 +13,8 @@ export default {
         black: '900',
       },
       fontFamily: {
-        body: ['"IM Fell English SC"', 'serif'],
-        headline: ['"Uncial Antiqua"', 'cursive'],
+        body: ['var(--font-pirata-one)', 'serif'],
+        headline: ['var(--font-metal-mania)', 'cursive'],
         code: ['monospace'],
       },
       colors: {
