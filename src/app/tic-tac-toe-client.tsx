@@ -39,18 +39,18 @@ const PLAYER_DATA_KEY = "OASIS_PLAYER_DATA_V1";
 const POINTS = { WIN: 10, DRAW: 2, LOSS: -5 };
 
 const characters: Character[] = [
-  { id: 'luffy', name: 'Luffy', avatarUrl: '/characters/luffy.png' },
-  { id: 'zoro', name: 'Zoro', avatarUrl: '/characters/zoro.png' },
-  { id: 'nami', name: 'Nami', avatarUrl: '/characters/nami.png' },
-  { id: 'sanji', name: 'Sanji', avatarUrl: '/characters/sanji.png' },
-  { id: 'shanks', name: 'Shanks', avatarUrl: '/characters/shanks.png' },
-  { id: 'usopp', name: 'Usopp', avatarUrl: '/characters/usopp.png' },
-  { id: 'chopper', name: 'Chopper', avatarUrl: '/characters/chopper.png' },
-  { id: 'robin', name: 'Robin', avatarUrl: '/characters/robin.png' },
-  { id: 'franky', name: 'Franky', avatarUrl: '/characters/franky.png' },
-  { id: 'brook', name: 'Brook', avatarUrl: '/characters/brook.png' },
-  { id: 'jinbe', name: 'Jinbe', avatarUrl: '/characters/jinbe.png' },
-  { id: 'ace', name: 'Ace', avatarUrl: '/characters/ace.png' },
+    { id: 'luffy', name: 'Luffy', avatarUrl: '/characters/luffy.png' },
+    { id: 'zoro', name: 'Zoro', avatarUrl: '/characters/zoro.png' },
+    { id: 'nami', name: 'Nami', avatarUrl: '/characters/nami.png' },
+    { id: 'sanji', name: 'Sanji', avatarUrl: '/characters/sanji.png' },
+    { id: 'shanks', name: 'Shanks', avatarUrl: '/characters/shanks.png' },
+    { id: 'usopp', name: 'Usopp', avatarUrl: '/characters/usopp.png' },
+    { id: 'chopper', name: 'Chopper', avatarUrl: '/characters/chopper.png' },
+    { id: 'robin', name: 'Robin', avatarUrl: '/characters/robin.png' },
+    { id: 'franky', name: 'Franky', avatarUrl: '/characters/franky.png' },
+    { id: 'brook', name: 'Brook', avatarUrl: '/characters/brook.png' },
+    { id: 'law', name: 'Law', avatarUrl: '/characters/law.png' },
+    { id: 'kid', name: 'Kid', avatarUrl: '/characters/kid.png' },
 ];
 
 const cpuCharacter: Character = { id: 'marine', name: 'Marine', avatarUrl: '/characters/marine.png' };
