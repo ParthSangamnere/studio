@@ -28,7 +28,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Trophy, Users, Cpu, History, Ship, Bone, Music, MicOff } from "lucide-react";
+import { Trophy, Users, Cpu, History, Ship, Bone, Music, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StrawHatTitle } from "@/components/game/StrawHatTitle";
 import Image from "next/image";
@@ -533,7 +533,7 @@ export default function TicTacToeClient() {
                 <span className="flex items-center gap-1"><Trophy className="h-4 w-4 text-accent" />{playerData.points} Berries</span>
             </div>
             <Button onClick={toggleMusic} variant="ghost" size="icon" className="absolute top-0 right-0">
-                {isMusicPlaying ? <MicOff /> : <Music />}
+                {isMusicPlaying ? <VolumeX /> : <Music />}
                 <span className="sr-only">{isMusicPlaying ? "Turn music off" : "Turn music on"}</span>
             </Button>
         </header>
