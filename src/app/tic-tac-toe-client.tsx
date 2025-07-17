@@ -106,7 +106,7 @@ export default function TicTacToeClient() {
         }
         setPlayerData(parsedData);
       }
-      audioRef.current = new Audio('/drums-of-liberation.mp3');
+      audioRef.current = new Audio('/one-piece-theme.mp3');
       audioRef.current.loop = true;
 
     } catch (error) {
@@ -553,5 +553,3 @@ export default function TicTacToeClient() {
     </div>
   );
 }
-
-    
