@@ -533,7 +533,7 @@ export default function TicTacToeClient() {
                 <span className="flex items-center gap-1"><Trophy className="h-4 w-4 text-accent" />{playerData.points} Berries</span>
             </div>
             <Button onClick={toggleMusic} variant="ghost" size="icon" className="absolute top-0 right-0">
-                {isMusicPlaying ? <VolumeX /> : <Music />}
+                {isMusicPlaying ? <Music /> : <VolumeX />}
                 <span className="sr-only">{isMusicPlaying ? "Turn music off" : "Turn music on"}</span>
             </Button>
         </header>
