@@ -28,7 +28,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Trophy, Users, Cpu, History, Ship, Bone, Music, VolumeX } from "lucide-react";
+import { Trophy, Users, Bone, History, Ship, Music, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StrawHatTitle } from "@/components/game/StrawHatTitle";
 import Image from "next/image";
@@ -430,7 +430,7 @@ export default function TicTacToeClient() {
         </div>
         <Card className="p-4 bg-card/70 border-2 border-border/50">
             <div className="flex flex-col items-center gap-2 text-center">
-                {player2.avatar && <Image src={player2.avatar.avatarUrl} alt={player2.avatar.name} width={80} height={80} className="rounded-full border-4" />}
+                {player2.avatar && <Image src={player2.avatar.avatarUrl} alt={player2.avatar.name} width={80} height={80} className="rounded-full border-4 border-secondary" />}
                 <p className={cn("font-bold text-lg transition-all", !isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
                   {player2.name} (O)
                 </p>
