@@ -168,21 +168,17 @@ export default function TicTacToeClient() {
   
   const handleGameEnd = useCallback((currentBoard: BoardState) => {
     const winnerInfo = calculateWinner(currentBoard);
+    let finalStatus: 'win' | 'loss' | 'draw' | null = null;
+
     if (winnerInfo) {
       setWinner(winnerInfo);
       setGameStatus("win");
       const isPlayer1Win = winnerInfo.winner === player1.symbol;
-       if (gameMode === 'cpu') {
-        const result = isPlayer1Win ? 'win' : 'loss';
+      if (gameMode === 'cpu') {
+        finalStatus = isPlayer1Win ? 'win' : 'loss';
         const points = isPlayer1Win ? POINTS.WIN : POINTS.LOSS;
-        updateHistoryAndPoints(result, `CPU (${difficulty})`, points);
-        setBanter("");
-        setIsBanterLoading(true);
-        generateBanter({ playerName: player1.name, boardState: currentBoard, gameStatus: result })
-            .then(res => setBanter(`"${res.banter}"`))
-            .finally(() => setIsBanterLoading(false));
+        updateHistoryAndPoints(finalStatus, `CPU (${difficulty})`, points);
       } else if (gameMode === '1v1' && playerData) {
-        // In 1v1, only Player 1's history is tracked.
         if (isPlayer1Win) {
           updateHistoryAndPoints('win', player2.name, POINTS.WIN);
         } else {
@@ -191,17 +187,22 @@ export default function TicTacToeClient() {
       }
     } else if (currentBoard.every(Boolean)) {
       setGameStatus("draw");
+      finalStatus = 'draw';
       if (gameMode === 'cpu' && playerData) {
         updateHistoryAndPoints('draw', `CPU (${difficulty})`, POINTS.DRAW);
-        setBanter("");
-        setIsBanterLoading(true);
-        generateBanter({ playerName: player1.name, boardState: currentBoard, gameStatus: 'draw' })
-            .then(res => setBanter(`"${res.banter}"`))
-            .finally(() => setIsBanterLoading(false));
       } else if (gameMode === '1v1' && playerData) {
         const opponent = gameMode === 'cpu' ? `CPU (${difficulty})` : player2.name;
         updateHistoryAndPoints('draw', opponent, POINTS.DRAW);
       }
+    }
+
+    if (finalStatus && gameMode === 'cpu') {
+      setBanter("");
+      setIsBanterLoading(true);
+      generateBanter({ playerName: player1.name, boardState: currentBoard, gameStatus: finalStatus })
+          .then(res => setBanter(`"${res.banter}"`))
+          .catch(err => console.error("Banter error:", err))
+          .finally(() => setIsBanterLoading(false));
     }
   }, [gameMode, difficulty, player1, player2, updateHistoryAndPoints, playerData]);
 
@@ -268,13 +269,6 @@ export default function TicTacToeClient() {
   };
   
   const makeCpuMove = useCallback((currentBoard: BoardState) => {
-    setBanter("");
-    setIsBanterLoading(true);
-    generateBanter({ playerName: player1.name, boardState: currentBoard, gameStatus: 'playing' })
-        .then(res => setBanter(`"${res.banter}"`))
-        .catch(err => console.error("Banter error:", err)) // Keep default message on error
-        .finally(() => setIsBanterLoading(false));
-
     const availableSquares = currentBoard.map((sq, i) => sq === null ? i : null).filter(i => i !== null) as number[];
     if (availableSquares.length === 0) return;
 
@@ -378,14 +372,19 @@ export default function TicTacToeClient() {
     const nextPlayerIsX = !isXNext;
     setIsXNext(nextPlayerIsX);
     
-    // Check for game end immediately after human move
-    const gameResultCheckBoard = [...newBoard];
-    const gameResult = calculateWinner(gameResultCheckBoard);
+    const gameResult = calculateWinner(newBoard);
 
-    if (gameResult || !gameResultCheckBoard.some(sq => sq === null)) {
-      handleGameEnd(gameResultCheckBoard);
+    if (gameResult || !newBoard.some(sq => sq === null)) {
+      handleGameEnd(newBoard);
     } else if (gameMode === 'cpu' && !nextPlayerIsX) {
-      makeCpuMove(gameResultCheckBoard);
+      setBanter("");
+      setIsBanterLoading(true);
+      generateBanter({ playerName: player1.name, boardState: newBoard, gameStatus: 'playing' })
+          .then(res => setBanter(`"${res.banter}"`))
+          .catch(err => console.error("Banter error:", err))
+          .finally(() => setIsBanterLoading(false));
+
+      makeCpuMove(newBoard);
     }
   };
   
@@ -422,9 +421,10 @@ export default function TicTacToeClient() {
       const winnerPlayer = winner?.winner === player1.symbol ? player1 : player2;
       const message = gameStatus === 'win' ? `${winnerPlayer.name} is the winner!` : "It's a draw!";
       return (
-        <div className="flex flex-col items-center gap-1 text-center">
-            <span className={cn(gameStatus === 'win' ? "text-accent" : "")}>{message}</span>
+        <div className="flex flex-col items-center gap-1 text-center h-full justify-center">
+            <span className={cn("text-xl", gameStatus === 'win' ? "text-accent" : "")}>{message}</span>
             {banter && <span className="text-sm text-muted-foreground italic">{banter}</span>}
+            {isBanterLoading && gameStatus !== 'playing' && <span className="text-sm text-muted-foreground italic animate-pulse">Marine is preparing a final word...</span>}
         </div>
       );
     }
@@ -452,7 +452,7 @@ export default function TicTacToeClient() {
             </div>
         </Card>
         <div className="flex flex-col items-center">
-            <div className="text-center font-headline text-xl md:text-2xl tracking-wider mb-4 h-14 flex items-center justify-center">
+            <div className="text-center font-headline text-xl md:text-2xl tracking-wider mb-4 h-16 flex items-center justify-center px-4">
                 {renderGameStatus()}
             </div>
             <GameBoard board={board} onSquareClick={handleSquareClick} isGameOver={gameStatus !== 'playing'} winningLine={winner?.line ?? null} />
@@ -585,3 +585,5 @@ export default function TicTacToeClient() {
     </div>
   );
 }
+
+    
