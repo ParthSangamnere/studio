@@ -279,7 +279,7 @@ export default function TicTacToeClient() {
   };
   
   const makeCpuMove = useCallback((currentBoard: BoardState) => {
-    getBanter(currentBoard, 'loss'); // 'loss' from player's perspective is a win for the AI
+    getBanter(currentBoard, 'playing');
 
     const availableSquares = currentBoard.map((sq, i) => sq === null ? i : null).filter(i => i !== null) as number[];
     if (availableSquares.length === 0) return;
@@ -391,6 +391,10 @@ export default function TicTacToeClient() {
       handleGameEnd(newBoard);
     } else if (gameMode === 'cpu' && !nextPlayerIsX) {
       makeCpuMove(newBoard);
+    } else if (gameMode === 'cpu' && nextPlayerIsX) {
+      // It's player's turn again after their move, get banter
+      const gameStatus = gameResult ? (gameResult.winner === player1.symbol ? 'win' : 'loss') : newBoard.every(Boolean) ? 'draw' : 'playing';
+      getBanter(newBoard, gameStatus);
     }
   };
   
@@ -425,10 +429,19 @@ export default function TicTacToeClient() {
   const renderGameStatus = () => {
     if (gameStatus !== "playing") {
       const winnerPlayer = winner?.winner === player1.symbol ? player1 : player2;
-      const message = gameStatus === 'win' ? `${winnerPlayer.name} is the winner!` : "It's a draw!";
+      let message;
+      if (gameStatus === 'win') {
+          message = `${winnerPlayer.name} is the winner!`;
+      } else {
+          message = "It's a draw!";
+      }
+
       return (
         <div className="flex flex-col items-center gap-1 text-center h-full justify-center">
             <span className={cn("text-xl", gameStatus === 'win' ? "text-accent" : "")}>{message}</span>
+            {gameMode === 'cpu' && banter && !isBanterLoading && (
+                <span className="text-sm italic text-muted-foreground mt-1">Marine: "{banter}"</span>
+            )}
         </div>
       );
     }
@@ -464,8 +477,8 @@ export default function TicTacToeClient() {
                 <Button onClick={resetGame} variant="secondary" size="lg">New Bounty</Button>
             </div>
         </div>
-        <div className="relative">
-          <Card className="p-4 bg-card/70 border-2 border-border/50">
+        <div className="flex items-center gap-4">
+          <Card className="p-4 bg-card/70 border-2 border-border/50 order-2">
               <div className="flex flex-col items-center gap-2 text-center">
                   {player2.avatar && <Image src={player2.avatar.avatarUrl} alt={player2.avatar.name} width={80} height={80} className="rounded-full border-4 border-secondary" />}
                   <p className={cn("font-bold text-lg transition-all", !isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
@@ -473,11 +486,11 @@ export default function TicTacToeClient() {
                   </p>
               </div>
           </Card>
-          {(banter || isBanterLoading) && gameMode === 'cpu' && (
-            <div className="absolute -left-4 bottom-full mb-2 w-48 transform -translate-x-full">
+          {(banter || isBanterLoading) && gameMode === 'cpu' && gameStatus === 'playing' && (
+            <div className="relative w-40 order-1">
               <div className="bg-card text-card-foreground p-2 rounded-lg shadow-lg text-sm italic relative border border-border">
                 {isBanterLoading ? <span className="animate-pulse">...</span> : `"${banter}"`}
-                <div className="absolute left-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-l-8 border-l-card"></div>
+                <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-8 border-r-card"></div>
               </div>
             </div>
           )}
@@ -599,5 +612,3 @@ export default function TicTacToeClient() {
     </div>
   );
 }
-
-    
