@@ -145,6 +145,21 @@ export default function TicTacToeClient() {
     }
   };
 
+  const getBanter = useCallback(async (currentBoard: BoardState, status: 'playing' | 'win' | 'loss' | 'draw') => {
+      if (gameMode !== 'cpu') return;
+      setIsBanterLoading(true);
+      setBanter("");
+      try {
+          const res = await generateBanter({ playerName: player1.name, boardState: currentBoard, gameStatus: status });
+          setBanter(res.banter);
+      } catch (err) {
+          console.error("Banter error:", err);
+          setBanter("..."); // Fallback banter
+      } finally {
+          setIsBanterLoading(false);
+      }
+  }, [gameMode, player1.name]);
+
 
   const updateHistoryAndPoints = useCallback((result: 'win' | 'loss' | 'draw', opponent: string, pointsChange: number) => {
     if (!playerData) return;
@@ -197,14 +212,9 @@ export default function TicTacToeClient() {
     }
 
     if (finalStatus && gameMode === 'cpu') {
-      setBanter("");
-      setIsBanterLoading(true);
-      generateBanter({ playerName: player1.name, boardState: currentBoard, gameStatus: finalStatus })
-          .then(res => setBanter(`"${res.banter}"`))
-          .catch(err => console.error("Banter error:", err))
-          .finally(() => setIsBanterLoading(false));
+      getBanter(currentBoard, finalStatus);
     }
-  }, [gameMode, difficulty, player1, player2, updateHistoryAndPoints, playerData]);
+  }, [gameMode, difficulty, player1, player2, updateHistoryAndPoints, playerData, getBanter]);
 
 
   const resetGame = () => {
@@ -269,6 +279,8 @@ export default function TicTacToeClient() {
   };
   
   const makeCpuMove = useCallback((currentBoard: BoardState) => {
+    getBanter(currentBoard, 'loss'); // 'loss' from player's perspective is a win for the AI
+
     const availableSquares = currentBoard.map((sq, i) => sq === null ? i : null).filter(i => i !== null) as number[];
     if (availableSquares.length === 0) return;
 
@@ -306,10 +318,11 @@ export default function TicTacToeClient() {
             newBoard[move] = 'O';
             setBoard(newBoard);
             setIsXNext(true);
+            setBanter(""); // Clear banter after move
             handleGameEnd(newBoard);
         }
-    }, 1200); // Increased delay to allow banter to be read
-  }, [difficulty, handleGameEnd, player1.name]);
+    }, 1200);
+  }, [difficulty, handleGameEnd, getBanter]);
 
   const findBestMove = (board: BoardState, player: PlayerSymbol): number => {
       let bestVal = -Infinity;
@@ -377,13 +390,6 @@ export default function TicTacToeClient() {
     if (gameResult || !newBoard.some(sq => sq === null)) {
       handleGameEnd(newBoard);
     } else if (gameMode === 'cpu' && !nextPlayerIsX) {
-      setBanter("");
-      setIsBanterLoading(true);
-      generateBanter({ playerName: player1.name, boardState: newBoard, gameStatus: 'playing' })
-          .then(res => setBanter(`"${res.banter}"`))
-          .catch(err => console.error("Banter error:", err))
-          .finally(() => setIsBanterLoading(false));
-
       makeCpuMove(newBoard);
     }
   };
@@ -423,8 +429,6 @@ export default function TicTacToeClient() {
       return (
         <div className="flex flex-col items-center gap-1 text-center h-full justify-center">
             <span className={cn("text-xl", gameStatus === 'win' ? "text-accent" : "")}>{message}</span>
-            {banter && <span className="text-sm text-muted-foreground italic">{banter}</span>}
-            {isBanterLoading && gameStatus !== 'playing' && <span className="text-sm text-muted-foreground italic animate-pulse">Marine is preparing a final word...</span>}
         </div>
       );
     }
@@ -436,7 +440,7 @@ export default function TicTacToeClient() {
       if(isBanterLoading) {
         return <span className="animate-pulse">Marine is thinking...</span>
       }
-      return <span className="text-muted-foreground italic">{banter || "Marine is thinking..."}</span>;
+      return <span>Marine's turn...</span>;
     }
     return <span><span className="text-primary font-semibold">{currentPlayer.name}'s</span> turn ({currentPlayer.symbol})</span>;
   };
@@ -460,14 +464,24 @@ export default function TicTacToeClient() {
                 <Button onClick={resetGame} variant="secondary" size="lg">New Bounty</Button>
             </div>
         </div>
-        <Card className="p-4 bg-card/70 border-2 border-border/50">
-            <div className="flex flex-col items-center gap-2 text-center">
-                {player2.avatar && <Image src={player2.avatar.avatarUrl} alt={player2.avatar.name} width={80} height={80} className="rounded-full border-4 border-secondary" />}
-                <p className={cn("font-bold text-lg transition-all", !isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
-                  {player2.name} (O)
-                </p>
+        <div className="relative">
+          <Card className="p-4 bg-card/70 border-2 border-border/50">
+              <div className="flex flex-col items-center gap-2 text-center">
+                  {player2.avatar && <Image src={player2.avatar.avatarUrl} alt={player2.avatar.name} width={80} height={80} className="rounded-full border-4 border-secondary" />}
+                  <p className={cn("font-bold text-lg transition-all", !isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
+                    {player2.name} (O)
+                  </p>
+              </div>
+          </Card>
+          {(banter || isBanterLoading) && gameMode === 'cpu' && (
+            <div className="absolute -left-4 bottom-full mb-2 w-48 transform -translate-x-full">
+              <div className="bg-card text-card-foreground p-2 rounded-lg shadow-lg text-sm italic relative border border-border">
+                {isBanterLoading ? <span className="animate-pulse">...</span> : `"${banter}"`}
+                <div className="absolute left-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-l-8 border-l-card"></div>
+              </div>
             </div>
-        </Card>
+          )}
+        </div>
     </div>
   );
 
