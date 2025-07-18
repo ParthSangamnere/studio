@@ -391,12 +391,8 @@ export default function TicTacToeClient() {
 
     if (isGameOver) {
       handleGameEnd(newBoard);
-    } else if (gameMode === 'cpu') {
-      if (!nextPlayerIsX) { // If it's now CPU's turn
-        makeCpuMove(newBoard);
-      } else { // If it's now Player's turn again (in 1v1)
-         // This block should ideally not be hit in CPU mode right after player move
-      }
+    } else if (gameMode === 'cpu' && !nextPlayerIsX) {
+      makeCpuMove(newBoard);
     }
 
     if (gameMode === 'cpu' && !isGameOver) {
@@ -447,9 +443,6 @@ export default function TicTacToeClient() {
       return (
         <div className="flex flex-col items-center gap-1 text-center h-full justify-center">
             <span className={cn("text-xl", gameStatus === 'win' ? "text-accent" : "")}>{message}</span>
-            {gameMode === 'cpu' && banter && !isBanterLoading && (
-                <span className="text-sm italic text-muted-foreground mt-1">Marine: "{banter}"</span>
-            )}
         </div>
       );
     }
@@ -467,15 +460,20 @@ export default function TicTacToeClient() {
   };
   
   const renderGameScreen = () => (
-    <div className="w-full max-w-4xl flex items-center justify-center gap-8 md:gap-12 animate-float">
-        <Card className="p-4 bg-card/70 border-2 border-border/50 self-center">
-            <div className="flex flex-col items-center gap-2 text-center">
-                 {player1.avatar && <Image src={player1.avatar.avatarUrl} alt={player1.avatar.name} width={80} height={80} className="rounded-full border-4 border-primary" />}
-                <p className={cn("font-bold text-lg transition-all", isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
-                  {player1.name} (X)
-                </p>
-            </div>
-        </Card>
+    <div className="w-full max-w-5xl grid grid-cols-[1fr_auto_1fr] items-start justify-center gap-4 md:gap-8 animate-float">
+        {/* Player 1 Column */}
+        <div className="flex justify-end">
+            <Card className="p-4 bg-card/70 border-2 border-border/50">
+                <div className="flex flex-col items-center gap-2 text-center w-32">
+                     {player1.avatar && <Image src={player1.avatar.avatarUrl} alt={player1.avatar.name} width={80} height={80} className="rounded-full border-4 border-primary" />}
+                    <p className={cn("font-bold text-lg transition-all truncate w-full", isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
+                      {player1.name} (X)
+                    </p>
+                </div>
+            </Card>
+        </div>
+
+        {/* Game Board Column */}
         <div className="flex flex-col items-center">
             <div className="text-center font-headline text-xl md:text-2xl tracking-wider mb-4 h-16 flex items-center justify-center px-4">
                 {renderGameStatus()}
@@ -485,23 +483,27 @@ export default function TicTacToeClient() {
                 <Button onClick={resetGame} variant="secondary" size="lg">New Bounty</Button>
             </div>
         </div>
-        <div className="flex items-center gap-4 self-center">
-          {(banter || isBanterLoading) && gameMode === 'cpu' && (
-            <div className="relative w-40 order-1">
-              <div className="bg-card text-card-foreground p-2 rounded-lg shadow-lg text-sm italic relative border border-border">
-                {isBanterLoading ? <span className="animate-pulse">...</span> : `"${banter}"`}
-                <div className="absolute right-full top-1/2 -translate-y-1/2 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-8 border-r-card"></div>
-              </div>
-            </div>
-          )}
-          <Card className="p-4 bg-card/70 border-2 border-border/50 order-2">
-              <div className="flex flex-col items-center gap-2 text-center">
-                  {player2.avatar && <Image src={player2.avatar.avatarUrl} alt={player2.avatar.name} width={80} height={80} className="rounded-full border-4 border-secondary" />}
-                  <p className={cn("font-bold text-lg transition-all", !isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
-                    {player2.name} (O)
-                  </p>
-              </div>
-          </Card>
+        
+        {/* Player 2 Column */}
+        <div className="flex justify-start">
+          <div className="relative">
+              <Card className="p-4 bg-card/70 border-2 border-border/50">
+                  <div className="flex flex-col items-center gap-2 text-center w-32">
+                      {player2.avatar && <Image src={player2.avatar.avatarUrl} alt={player2.avatar.name} width={80} height={80} className="rounded-full border-4 border-secondary" />}
+                      <p className={cn("font-bold text-lg transition-all truncate w-full", !isXNext && gameStatus === 'playing' ? "text-primary drop-shadow-[0_0_5px_hsl(var(--primary))]" : "text-muted-foreground")}>
+                        {player2.name} (O)
+                      </p>
+                  </div>
+              </Card>
+               {(banter || isBanterLoading) && gameMode === 'cpu' && (
+                <div className="absolute top-4 left-[calc(100%_+_1rem)] w-48">
+                  <div className="bg-card text-card-foreground p-3 rounded-lg shadow-lg text-sm italic relative border border-border">
+                    {isBanterLoading ? <span className="animate-pulse">...</span> : `"${banter}"`}
+                    <div className="absolute left-[-8px] top-1/2 -translate-y-1/2 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-8 border-r-card"></div>
+                  </div>
+                </div>
+              )}
+          </div>
         </div>
     </div>
   );
@@ -600,8 +602,8 @@ export default function TicTacToeClient() {
                 <span className="flex items-center gap-1"><Trophy className="h-4 w-4 text-accent" />{playerData.points} Berries</span>
             </div>
             <Button onClick={toggleMusic} variant="ghost" size="icon" className="absolute top-0 right-0">
-                {isMusicPlaying ? <Music /> : <VolumeX />}
-                <span className="sr-only">{isMusicPlaying ? "Turn music off" : "Turn music on"}</span>
+                {!isMusicPlaying ? <Music /> : <VolumeX />}
+                <span className="sr-only">{isMusicPlaying ? "Turn music on" : "Turn music off"}</span>
             </Button>
         </header>
 
