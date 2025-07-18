@@ -422,7 +422,7 @@ export default function TicTacToeClient() {
       const winnerPlayer = winner?.winner === player1.symbol ? player1 : player2;
       const message = gameStatus === 'win' ? `${winnerPlayer.name} is the winner!` : "It's a draw!";
       return (
-        <div className="flex flex-col items-center gap-1">
+        <div className="flex flex-col items-center gap-1 text-center">
             <span className={cn(gameStatus === 'win' ? "text-accent" : "")}>{message}</span>
             {banter && <span className="text-sm text-muted-foreground italic">{banter}</span>}
         </div>
@@ -434,7 +434,7 @@ export default function TicTacToeClient() {
 
     if (isCpuTurn) {
       if(isBanterLoading) {
-        return <span>Marine is thinking...</span>
+        return <span className="animate-pulse">Marine is thinking...</span>
       }
       return <span className="text-muted-foreground italic">{banter || "Marine is thinking..."}</span>;
     }
