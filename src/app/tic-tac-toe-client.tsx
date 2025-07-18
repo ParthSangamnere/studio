@@ -496,7 +496,7 @@ export default function TicTacToeClient() {
                   </div>
               </Card>
                {(banter || isBanterLoading) && gameMode === 'cpu' && (
-                <div className="absolute top-4 left-[calc(100%_+_1rem)] w-48">
+                <div className="absolute top-4 left-[calc(100%_+_1rem)] w-56">
                   <div className="bg-card text-card-foreground p-3 rounded-lg shadow-lg text-sm italic relative border border-border">
                     {isBanterLoading ? <span className="animate-pulse">...</span> : `"${banter}"`}
                     <div className="absolute left-[-8px] top-1/2 -translate-y-1/2 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-8 border-r-card"></div>
@@ -602,8 +602,8 @@ export default function TicTacToeClient() {
                 <span className="flex items-center gap-1"><Trophy className="h-4 w-4 text-accent" />{playerData.points} Berries</span>
             </div>
             <Button onClick={toggleMusic} variant="ghost" size="icon" className="absolute top-0 right-0">
-                {!isMusicPlaying ? <Music /> : <VolumeX />}
-                <span className="sr-only">{isMusicPlaying ? "Turn music on" : "Turn music off"}</span>
+                {isMusicPlaying ? <VolumeX /> : <Music />}
+                <span className="sr-only">{isMusicPlaying ? "Turn music off" : "Turn music on"}</span>
             </Button>
         </header>
 
@@ -622,5 +622,3 @@ export default function TicTacToeClient() {
     </div>
   );
 }
-
-    
