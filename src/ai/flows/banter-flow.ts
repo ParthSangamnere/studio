@@ -14,7 +14,7 @@ import type { BoardState, GameStatus } from '@/lib/types';
 
 const BanterInputSchema = z.object({
   playerName: z.string().describe("The name of the human player."),
-  boardState: z.array(z.union([z.literal('X'), z.literal('O'), z.null()])).describe("The current 3x3 tic-tac-toe board state. 'X' is the player, 'O' is the AI (Marine)."),
+  boardState: z.string().describe("The current 3x3 tic-tac-toe board state as a string. 'X' is the player, 'O' is the AI (Marine)."),
   gameStatus: z.enum(['playing', 'win', 'loss', 'draw']).describe("The current status of the game from the player's perspective. 'win' means the player won, 'loss' means the AI won.")
 });
 export type BanterInput = z.infer<typeof BanterInputSchema>;
@@ -24,8 +24,12 @@ const BanterOutputSchema = z.object({
 });
 export type BanterOutput = z.infer<typeof BanterOutputSchema>;
 
-export async function generateBanter(input: BanterInput): Promise<BanterOutput> {
-  return banterFlow(input);
+export async function generateBanter(input: { playerName: string; boardState: BoardState; gameStatus: GameStatus; }): Promise<BanterOutput> {
+  const processedInput = {
+    ...input,
+    boardState: JSON.stringify(input.boardState),
+  };
+  return banterFlow(processedInput);
 }
 
 const prompt = ai.definePrompt({
@@ -35,7 +39,7 @@ const prompt = ai.definePrompt({
   prompt: `You are a cocky Marine soldier in the world of One Piece playing Tic-Tac-Toe against a pirate. Your name is "Marine". The pirate's name is {{playerName}}.
 
 The game board is represented by a 9-element array. 'X' is the pirate's symbol, and 'O' is your symbol (the Marine).
-The board state is: {{jsonStringify boardState}}
+The board state is: {{boardState}}
 
 The current game status is '{{gameStatus}}'.
 - If the status is 'playing', the pirate has just made a move and it is now your turn.
